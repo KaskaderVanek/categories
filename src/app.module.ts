@@ -20,9 +20,9 @@ import { CategoriesModule } from './categories/categories.module'
       database: process.env.POSTGRES_DB,
       models: [Category],
       autoLoadModels: true,
-      retryAttempts: 1
+      retryAttempts: 1,
     }),
-    CategoriesModule
+    CategoriesModule,
   ],
 })
 export class AppModule {}

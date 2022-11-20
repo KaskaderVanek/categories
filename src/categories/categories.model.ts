@@ -51,7 +51,10 @@ export class Category extends Model<Category, CategoryCreationAttrs> {
   })
   description: string
 
-  @ApiProperty({ example: new Date(), description: 'Дата создания' })
+  @ApiProperty({
+    example: new Date(),
+    description: 'Дата создания, проставляется автоматически',
+  })
   @Column({
     type: DataType.DATE,
     defaultValue: new Date(),

@@ -32,16 +32,23 @@ export class CategoriesController {
   @ApiResponse({ status: 201, type: Category })
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UsePipes(ValidationPipe)
-  createCategory(@Body() dto: CreateCategoryDto): Promise<Category> {
+  createCategory(
+    @Body(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    )
+    dto: CreateCategoryDto,
+  ): Promise<Category> {
     return this.categoryService.create(dto)
   }
 
   @ApiOperation({ summary: 'Изменить категорию' })
   @ApiResponse({ status: 200 })
-  @Put()
-  updateCategory(@Body() dto: UpdateCategoryDto) {
-    return this.categoryService.update(dto)
+  @Put(':id')
+  updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
+    return this.categoryService.update(id, dto)
   }
 
   @ApiOperation({ summary: 'Получить категорию по Id или Slug' })

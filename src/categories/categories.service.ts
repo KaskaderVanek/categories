@@ -19,13 +19,14 @@ export class CategoriesService {
         `Категория '${dto.slug}' уже существует`,
         HttpStatus.BAD_REQUEST,
       )
+
     return category
   }
 
-  async update(dto: UpdateCategoryDto) {
-    if (!dto.id || !isUUID(dto.id, '4'))
+  async update(id: string, dto: UpdateCategoryDto) {
+    if (!id || !isUUID(id, '4'))
       throw new HttpException('Неверный id', HttpStatus.BAD_REQUEST)
-    const category = await this.categoryModel.findByPk(dto.id)
+    const category = await this.categoryModel.findByPk(id)
     if (!category)
       throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
     return await category.update(dto)
@@ -39,6 +40,10 @@ export class CategoriesService {
 
   async delete(id: string) {
     return await this.categoryModel.destroy({ where: { id: id } })
+  }
+
+  async filter() {
+    // https://tkssharma.com/nestjs-playing-with-query-param-dto/
   }
 
   async getAll(): Promise<Category[]> {
