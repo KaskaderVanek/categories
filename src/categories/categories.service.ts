@@ -4,6 +4,7 @@ import { CreateCategoryDto } from './dto/create-category.dto'
 import { Category } from './categories.model'
 import { UpdateCategoryDto } from './dto/update-category.dto'
 import { isUUID } from 'class-validator'
+import { FilterCategory } from './dto/filter-category.dto'
 
 @Injectable()
 export class CategoriesService {
@@ -14,46 +15,46 @@ export class CategoriesService {
       where: { slug: dto.slug },
       defaults: dto,
     })
-    if (!created)
-      throw new HttpException(
-        `Категория '${dto.slug}' уже существует`,
-        HttpStatus.BAD_REQUEST,
-      )
+    if (!created) throw new HttpException(`Категория '${dto.slug}' уже существует`, HttpStatus.BAD_REQUEST)
 
     return category
   }
 
-  async update(id: string, dto: UpdateCategoryDto) {
-    if (!id || !isUUID(id, '4'))
-      throw new HttpException('Неверный id', HttpStatus.BAD_REQUEST)
+  async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
     const category = await this.categoryModel.findByPk(id)
-    if (!category)
-      throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+    if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+    const findUniqueCategory = dto.slug ? await this.categoryModel.findOne({where: {slug: dto?.slug}}) : null
+    if (findUniqueCategory && id !== findUniqueCategory.id) throw new HttpException(`Категория с названием '${dto.slug}' уже существует`, HttpStatus.BAD_REQUEST)
     return await category.update(dto)
+  
   }
 
   async getOne(value: string): Promise<Category> {
     if (isUUID(value, '4')) {
       const category = await this.categoryModel.findByPk(value)
-      if (!category) {
-        throw new NotFoundException('Категория не найдена')
-      }
+      if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
       return category
     } else {
       const category = await this.categoryModel.findOne({where: {slug: value}})
-      if (!category) {
-        throw new NotFoundException('Категория не найдена')
-      }
+      if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
       return category
     }
   }
 
-  async delete(id: string) {
-    return await this.categoryModel.destroy({ where: { id: id } })
+  async delete(id: string): Promise<HttpException> {
+    const deleted = await this.categoryModel.destroy({ where: { id: id } })
+    if (deleted) {
+      throw new HttpException('Категория удалена', HttpStatus.OK)
+    } else {
+      throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+    }
   }
 
-  async filter() {
+  async filter(filter: FilterCategory) {
     // https://tkssharma.com/nestjs-playing-with-query-param-dto/
+    console.log(filter)
+    
+    return filter
   }
 
   async getAll(): Promise<Category[]> {
