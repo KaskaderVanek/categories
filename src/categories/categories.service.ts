@@ -23,10 +23,10 @@ export class CategoriesService {
   async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
     const category = await this.categoryModel.findByPk(id)
     if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
-    const findUniqueCategory = dto.slug ? await this.categoryModel.findOne({where: {slug: dto?.slug}}) : null
-    if (findUniqueCategory && id !== findUniqueCategory.id) throw new HttpException(`Категория с названием '${dto.slug}' уже существует`, HttpStatus.BAD_REQUEST)
+    const findUniqueCategory = dto.slug ? await this.categoryModel.findOne({ where: { slug: dto?.slug } }) : null
+    if (findUniqueCategory && id !== findUniqueCategory.id)
+      throw new HttpException(`Категория с названием '${dto.slug}' уже существует`, HttpStatus.BAD_REQUEST)
     return await category.update(dto)
-  
   }
 
   async getOne(value: string): Promise<Category> {
@@ -35,7 +35,7 @@ export class CategoriesService {
       if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
       return category
     } else {
-      const category = await this.categoryModel.findOne({where: {slug: value}})
+      const category = await this.categoryModel.findOne({ where: { slug: value } })
       if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
       return category
     }
@@ -46,14 +46,18 @@ export class CategoriesService {
     if (deleted) {
       throw new HttpException('Категория удалена', HttpStatus.OK)
     } else {
-      throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+      throw new HttpException('Категория неs найдена', HttpStatus.NOT_FOUND)
     }
   }
 
   async filter(filter: FilterCategory) {
     // https://tkssharma.com/nestjs-playing-with-query-param-dto/
+    // https://postgrespro.ru/docs/postgresql/15/functions-matching - Поиск по шаблону
+    // https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#applying-where-clauses
+    // https://my-js.org/docs/guide/sequelize/
+
     console.log(filter)
-    
+
     return filter
   }
 

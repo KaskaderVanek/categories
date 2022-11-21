@@ -1,11 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger/dist'
-import {
-  IsBoolean,
-  IsNotEmpty,
-  IsString,
-  Matches,
-  IsOptional,
-} from 'class-validator'
+import { IsBoolean, IsNotEmpty, IsString, Matches, IsOptional } from 'class-validator'
 import { IsNotUndefined } from 'src/decorators/undefined.decorator'
 
 export class CreateCategoryDto {
@@ -33,5 +27,3 @@ export class CreateCategoryDto {
   @IsBoolean({ message: 'Active должен быть типа Boolean' })
   readonly active?: boolean
 }
-
-

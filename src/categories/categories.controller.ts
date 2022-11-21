@@ -1,23 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Delete,
-  Param,
-  Query,
-  Put,
-  ValidationPipe,
-  HttpException,
-} from '@nestjs/common'
-import {
-  ApiOperation,
-  ApiParam,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger/dist'
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Delete, Param, Query, Put, ValidationPipe, HttpException } from '@nestjs/common'
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger/dist'
 import { CreateCategoryDto } from './dto/create-category.dto'
 import { Category } from './categories.model'
 import { CategoriesService } from './categories.service'
@@ -34,7 +16,10 @@ export class CategoriesController {
   @ApiResponse({ status: 201, type: Category })
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  createCategory(@Body(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true})) dto: CreateCategoryDto): Promise<Category> {
+  createCategory(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    dto: CreateCategoryDto,
+  ): Promise<Category> {
     return this.categoryService.create(dto)
   }
 
@@ -42,9 +27,9 @@ export class CategoriesController {
   @ApiResponse({ status: 200 })
   @Put(':id')
   updateCategory(
-      @Param('id', UuidValidationPipe) id: string, 
-      @Body(new ValidationPipe({whitelist: true, forbidNonWhitelisted: true})) dto: UpdateCategoryDto
-    ): Promise<Category> {
+    @Param('id', UuidValidationPipe) id: string,
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) dto: UpdateCategoryDto,
+  ): Promise<Category> {
     return this.categoryService.update(id, dto)
   }
 
@@ -54,11 +39,20 @@ export class CategoriesController {
   getAllCategories(): Promise<Category[]> {
     return this.categoryService.getAll()
   }
-  
+
   @ApiOperation({ summary: 'Получить массив категорий по фильтру' })
   @ApiResponse({ status: 200 })
   @Get('filter')
-  filterCategory(@Query(new ValidationPipe({transform: true, whitelist: false, forbidNonWhitelisted: true})) filter: FilterCategory) {
+  filterCategory(
+    @Query(
+      new ValidationPipe({
+        transform: true,
+        whitelist: false,
+        forbidNonWhitelisted: true,
+      }),
+    )
+    filter: FilterCategory,
+  ) {
     return this.categoryService.filter(filter)
   }
 
@@ -79,7 +73,4 @@ export class CategoriesController {
   deleteCategory(@Param('id', UuidValidationPipe) id: string): Promise<HttpException> {
     return this.categoryService.delete(id)
   }
-
-
-
 }

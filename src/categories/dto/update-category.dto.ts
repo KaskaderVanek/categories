@@ -2,7 +2,6 @@ import { ApiProperty } from '@nestjs/swagger/dist'
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator'
 
 export class UpdateCategoryDto {
-
   @ApiProperty({ required: false })
   @IsOptional()
   @Matches('^[a-zA-Z0-9_]*$', '', {
