@@ -1,18 +1,17 @@
-import { HttpException, HttpStatus } from '@nestjs/common'
 import { ApiProperty } from '@nestjs/swagger/dist'
 import {
   IsBoolean,
   IsNotEmpty,
   IsString,
   Matches,
-  ValidateIf,
   IsOptional,
 } from 'class-validator'
+import { IsNotUndefined } from 'src/decorators/undefined.decorator'
 
 export class CreateCategoryDto {
   @ApiProperty()
-  // @IsNotUndefined('Slug')
-  @Matches('[a-zA-Z0-9]+$', '', {
+  @IsNotUndefined('Slug')
+  @Matches('^[a-zA-Z0-9_]*$', '', {
     message: 'Slug должен быть строкой и не содержать кириллицу',
   })
   @IsNotEmpty({ message: 'Slug не может быть пустым' })
@@ -35,14 +34,4 @@ export class CreateCategoryDto {
   readonly active?: boolean
 }
 
-export function IsNotUndefined(property: string): PropertyDecorator {
-  return ValidateIf((_, value) => {
-    if (value === undefined) {
-      throw new HttpException(
-        `Поле ${property} обязательно для создания категории`,
-        HttpStatus.BAD_REQUEST,
-      )
-    }
-    return true
-  })
-}
+
