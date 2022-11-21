@@ -51,11 +51,12 @@ export class CategoriesController {
     return this.categoryService.update(id, dto)
   }
 
-  @ApiOperation({ summary: 'Получить категорию по Id или Slug' })
-  @ApiResponse({ status: 200 })
-  @Get()
-  getByIdOrSlug(@Query() query: object) {
-    return this.categoryService.getOne(query)
+  @ApiOperation({ summary: 'Получить категорию по Id или Slug', description: 'В поле {value} нужно передать id или slug' })
+  @ApiParam({name: 'value', example: 'a954927f-2ac6-4b9d-8486-03c0e8616ff3'})
+  @ApiResponse({ status: 200, type: Category, })
+  @Get(':value')
+  getByIdOrSlug(@Param('value') value: string): Promise<Category> {
+    return this.categoryService.getOne(value)
   }
 
   @ApiOperation({ summary: 'Удалить категорию' })
