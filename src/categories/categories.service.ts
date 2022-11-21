@@ -32,10 +32,20 @@ export class CategoriesService {
     return await category.update(dto)
   }
 
-  async getOne(query) {
-    console.log(query)
-
-    return query
+  async getOne(value: string): Promise<Category> {
+    if (isUUID(value, '4')) {
+      const category = await this.categoryModel.findByPk(value)
+      if (!category) {
+        throw new NotFoundException('Категория не найдена')
+      }
+      return category
+    } else {
+      const category = await this.categoryModel.findOne({where: {slug: value}})
+      if (!category) {
+        throw new NotFoundException('Категория не найдена')
+      }
+      return category
+    }
   }
 
   async delete(id: string) {
