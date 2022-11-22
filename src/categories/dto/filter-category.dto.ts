@@ -1,38 +1,45 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Transform } from 'class-transformer'
-import { IsNumber } from 'class-validator'
+import { Transform,  } from 'class-transformer'
+import { IsBoolean, IsNumber, IsString } from 'class-validator'
 
 export class FilterCategory {
   @ApiProperty({ required: false })
+  @IsString()
   readonly name?: string
 
   @ApiProperty({ required: false })
+  @IsString()
   readonly description?: string
 
   @ApiProperty({ required: false })
   @Transform(({ value }) => toBoolean(value))
+  @IsBoolean()
   readonly active?: boolean
 
   @ApiProperty({ required: false })
+  @IsString()
   readonly search?: string
 
   @ApiProperty({ required: false })
   @Transform(({ value }) => toNumber(value, { min: 1, max: 9, default: 2 }))
   @IsNumber()
-  readonly pageSize?: number
+  readonly pageSize?: number = 2
 
   @ApiProperty({ required: false })
   @Transform(({ value }) => Number(value))
+  @IsNumber()
   readonly page?: number
 
   @ApiProperty({ required: false })
-  @Transform(({ value }) => Number(value))
-  readonly sort?: number
+  @IsString()
+  readonly sort?: string = '-createdDate'
 }
 
 const toBoolean = (value: string): boolean => {
   value = value.toLowerCase()
-  return value === 'true' || value === '1' ? true : false
+  if (value === 'true' || value === '1') return true
+  if (value === 'false' || value === '0') return false
+  return undefined
 }
 
 interface ToNumberOptions {
