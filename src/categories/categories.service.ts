@@ -5,7 +5,7 @@ import { Category } from './categories.model'
 import { UpdateCategoryDto } from './dto/update-category.dto'
 import { isUUID } from 'class-validator'
 import { FilterCategory } from './dto/filter-category.dto'
-import { IncludeOptions, Op, Order, WhereOptions } from 'sequelize'
+import { FindOptions, Op } from 'sequelize'
 
 @Injectable()
 export class CategoriesService {
@@ -16,42 +16,30 @@ export class CategoriesService {
       where: { slug: dto.slug },
       defaults: dto,
     })
-    if (!created)
-      throw new HttpException(
-        `Категория '${dto.slug}' уже существует`,
-        HttpStatus.BAD_REQUEST,
-      )
+    if (!created) throw new HttpException(`Категория '${dto.slug}' уже существует`, HttpStatus.BAD_REQUEST)
 
     return category
   }
 
   async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
     const category = await this.categoryModel.findByPk(id)
-    if (!category)
-      throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
-    const findUniqueCategory = dto.slug
-      ? await this.categoryModel.findOne({ where: { slug: dto?.slug } })
-      : null
+    if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+    const findUniqueCategory = dto.slug ? await this.categoryModel.findOne({ where: { slug: dto?.slug } }) : null
     if (findUniqueCategory && id !== findUniqueCategory.id)
-      throw new HttpException(
-        `Категория с названием '${dto.slug}' уже существует`,
-        HttpStatus.BAD_REQUEST,
-      )
+      throw new HttpException(`Категория с названием '${dto.slug}' уже существует`, HttpStatus.BAD_REQUEST)
     return await category.update(dto)
   }
 
   async getOne(value: string): Promise<Category> {
     if (isUUID(value, '4')) {
       const category = await this.categoryModel.findByPk(value)
-      if (!category)
-        throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+      if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
       return category
     } else {
       const category = await this.categoryModel.findOne({
         where: { slug: value },
       })
-      if (!category)
-        throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+      if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
       return category
     }
   }
@@ -65,25 +53,31 @@ export class CategoriesService {
     }
   }
 
-  async filter(filter: FilterCategory) {
+  async filter(dto: FilterCategory) {
     // https://sequelize.org/api/v7/interfaces/whereoperators
     // https://www.tabnine.com/code/javascript/functions/sequelize/Op
     // https://www.programcreek.com/typescript/?api=sequelize.Op
     // https://my-js.org/docs/guide/sequelize/
-    
-    const order = [['createdDate', 'DESC']] as Order
-    const where: WhereOptions<Category> = {}
-    where[Op.and] = [{}]
-    if (filter.active !== undefined) where[Op.and][0].active = filter.active
-    if (filter.name) where[Op.and][0].name = {[Op.iLike]: `%${filter.name}%`}
-    if (filter.description) where[Op.and][0].description = {[Op.iLike]: `%${filter.description}%`}
-
-    const categories = await this.categoryModel.findAll({
-      order,
-      where,
-      limit: filter.pageSize
-    })
-    console.log(where[Op.and])
+    const { active, page, pageSize, name, description, search, sort } = dto
+    const findOptions: FindOptions<Category> = {
+      order: [['createdDate', 'DESC']],
+      where: { [Op.and]: [{}] },
+      limit: pageSize,
+    }
+    if (page) findOptions.offset = page * pageSize - pageSize
+    if (active !== undefined) findOptions.where[Op.and][0].active = active
+    if (name && !search) findOptions.where[Op.and][0].name = { [Op.iLike]: `%${name}%` }
+    if (description && !search) {
+      findOptions.where[Op.and][0].description = { [Op.iLike]: `%${description}%` }
+    }
+    if (search) {
+      findOptions.where[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
+      ]
+    }
+    const categories = await this.categoryModel.findAll(findOptions)
+    console.log(findOptions)
 
     return categories
   }

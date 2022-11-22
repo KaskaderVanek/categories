@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { Transform,  } from 'class-transformer'
+import { Transform } from 'class-transformer'
 import { IsBoolean, IsNumber, IsString } from 'class-validator'
 
 export class FilterCategory {

@@ -1,4 +1,17 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Delete, Param, Query, Put, ValidationPipe, HttpException } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Delete,
+  Param,
+  Query,
+  Put,
+  ValidationPipe,
+  HttpException,
+} from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger/dist'
 import { CreateCategoryDto } from './dto/create-category.dto'
 import { Category } from './categories.model'
@@ -48,12 +61,13 @@ export class CategoriesController {
       new ValidationPipe({
         transform: true,
         whitelist: false,
-        forbidNonWhitelisted: true,
+        forbidNonWhitelisted: false,
+        skipUndefinedProperties: true,
       }),
     )
-    filter: FilterCategory,
+    dto: FilterCategory,
   ) {
-    return this.categoryService.filter(filter)
+    return this.categoryService.filter(dto)
   }
 
   @ApiOperation({

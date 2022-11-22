@@ -50,7 +50,7 @@ export class Category extends Model<Category> {
   })
   @Column({
     type: DataType.DATE,
-    defaultValue: new Date(),
+    defaultValue: Date,
   })
   createdDate: Date
 
