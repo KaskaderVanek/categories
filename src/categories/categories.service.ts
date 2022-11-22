@@ -1,56 +1,94 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { Transform,  } from 'class-transformer'
-import { IsBoolean, IsNumber, IsString } from 'class-validator'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { InjectModel } from '@nestjs/sequelize'
+import { CreateCategoryDto } from './dto/create-category.dto'
+import { Category } from './categories.model'
+import { UpdateCategoryDto } from './dto/update-category.dto'
+import { isUUID } from 'class-validator'
+import { FilterCategory } from './dto/filter-category.dto'
+import { IncludeOptions, Op, Order, WhereOptions } from 'sequelize'
 
-export class FilterCategory {
-  @ApiProperty({ required: false })
-  @IsString()
-  readonly name?: string
+@Injectable()
+export class CategoriesService {
+  constructor(@InjectModel(Category) private categoryModel: typeof Category) {}
 
-  @ApiProperty({ required: false })
-  @IsString()
-  readonly description?: string
+  async create(dto: CreateCategoryDto): Promise<Category> {
+    const [category, created] = await this.categoryModel.findOrCreate({
+      where: { slug: dto.slug },
+      defaults: dto,
+    })
+    if (!created)
+      throw new HttpException(
+        `Категория '${dto.slug}' уже существует`,
+        HttpStatus.BAD_REQUEST,
+      )
 
-  @ApiProperty({ required: false })
-  @Transform(({ value }) => toBoolean(value))
-  @IsBoolean()
-  readonly active?: boolean
+    return category
+  }
 
-  @ApiProperty({ required: false })
-  @IsString()
-  readonly search?: string
+  async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
+    const category = await this.categoryModel.findByPk(id)
+    if (!category)
+      throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+    const findUniqueCategory = dto.slug
+      ? await this.categoryModel.findOne({ where: { slug: dto?.slug } })
+      : null
+    if (findUniqueCategory && id !== findUniqueCategory.id)
+      throw new HttpException(
+        `Категория с названием '${dto.slug}' уже существует`,
+        HttpStatus.BAD_REQUEST,
+      )
+    return await category.update(dto)
+  }
 
-  @ApiProperty({ required: false })
-  @Transform(({ value }) => toNumber(value, { min: 1, max: 9, default: 2 }))
-  @IsNumber()
-  readonly pageSize?: number = 2
+  async getOne(value: string): Promise<Category> {
+    if (isUUID(value, '4')) {
+      const category = await this.categoryModel.findByPk(value)
+      if (!category)
+        throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+      return category
+    } else {
+      const category = await this.categoryModel.findOne({
+        where: { slug: value },
+      })
+      if (!category)
+        throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+      return category
+    }
+  }
 
-  @ApiProperty({ required: false })
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
-  readonly page?: number
+  async delete(id: string): Promise<HttpException> {
+    const deleted = await this.categoryModel.destroy({ where: { id: id } })
+    if (deleted) {
+      throw new HttpException('Категория удалена', HttpStatus.OK)
+    } else {
+      throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
+    }
+  }
 
-  @ApiProperty({ required: false })
-  @IsString()
-  readonly sort?: string = '-createdDate'
-}
+  async filter(filter: FilterCategory) {
+    // https://sequelize.org/api/v7/interfaces/whereoperators
+    // https://www.tabnine.com/code/javascript/functions/sequelize/Op
+    // https://www.programcreek.com/typescript/?api=sequelize.Op
+    // https://my-js.org/docs/guide/sequelize/
+    
+    const order = [['createdDate', 'DESC']] as Order
+    const where: WhereOptions<Category> = {}
+    where[Op.and] = [{}]
+    if (filter.active !== undefined) where[Op.and][0].active = filter.active
+    if (filter.name) where[Op.and][0].name = {[Op.iLike]: `%${filter.name}%`}
+    if (filter.description) where[Op.and][0].description = {[Op.iLike]: `%${filter.description}%`}
 
-const toBoolean = (value: string): boolean => {
-  value = value.toLowerCase()
-  if (value === 'true' || value === '1') return true
-  if (value === 'false' || value === '0') return false
-  return undefined
-}
+    const categories = await this.categoryModel.findAll({
+      order,
+      where,
+      limit: filter.pageSize
+    })
+    console.log(where[Op.and])
 
-interface ToNumberOptions {
-  default?: number
-  min?: number
-  max?: number
-}
-const toNumber = (value: string, opts?: ToNumberOptions): number => {
-  let newValue = Number.parseInt(value || String(opts.default), 10)
-  if (Number.isNaN(newValue)) newValue = opts.default
-  if (newValue < opts?.min) newValue = opts.min
-  if (newValue > opts?.max) newValue = opts.max
-  return newValue
+    return categories
+  }
+
+  async getAll(): Promise<Category[]> {
+    return await this.categoryModel.findAll()
+  }
 }
