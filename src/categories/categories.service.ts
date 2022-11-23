@@ -20,7 +20,7 @@ export class CategoriesService {
 
     return category
   }
-
+  
   async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
     const category = await this.categoryModel.findByPk(id)
     if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
@@ -58,11 +58,15 @@ export class CategoriesService {
     // https://www.tabnine.com/code/javascript/functions/sequelize/Op
     // https://www.programcreek.com/typescript/?api=sequelize.Op
     // https://my-js.org/docs/guide/sequelize/
+
+    // https://stackoverflow.com/questions/45415791/unaccent-in-sequelize
     const { active, page, pageSize, name, description, search, sort } = dto
+
+    const sortAtt: Array<string> = Object.keys(Category.getAttributes())
     const findOptions: FindOptions<Category> = {
-      order: [['createdDate', 'DESC']],
-      where: { [Op.and]: [{}] },
-      limit: pageSize,
+      order: [],
+      where: { [Op.and]: [{}],  },
+      limit: pageSize
     }
     if (page) findOptions.offset = page * pageSize - pageSize
     if (active !== undefined) findOptions.where[Op.and][0].active = active
@@ -72,12 +76,17 @@ export class CategoriesService {
     }
     if (search) {
       findOptions.where[Op.or] = [
-        { name: { [Op.iLike]: `%${search}%` } },
-        { description: { [Op.iLike]: `%${search}%` } },
+        { name: { [Op.iLike]: `%${search}%`} },
+        { description: { [Op.iLike]: `%${search}%`} },
       ]
     }
+    if (sort) {
+      if (sort.startsWith('-') && sortAtt.includes(sort.slice(1))) findOptions.order[0] = [sort.slice(1), 'DESC']
+      if (!sort.startsWith('-') && sortAtt.includes(sort)) findOptions.order[0] = [sort, 'ASC']
+    }
     const categories = await this.categoryModel.findAll(findOptions)
-    console.log(findOptions)
+    // console.log(Category.getAttributes())
+    console.log(findOptions.order[0])
 
     return categories
   }
