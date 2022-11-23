@@ -1,6 +1,6 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript'
 import { ApiProperty } from '@nestjs/swagger'
-import { UUIDV4 } from 'sequelize'
+import { UUIDV4, fn } from 'sequelize'
 
 @Table({ tableName: 'categories', createdAt: false, updatedAt: false })
 export class Category extends Model<Category> {
@@ -49,10 +49,9 @@ export class Category extends Model<Category> {
     description: 'Дата создания, проставляется автоматически',
   })
   @Column({
-    type: DataType.DATE,
-    defaultValue: Date,
+    type: DataType.DATE
   })
-  createdDate: Date
+  createdDate: Date = new Date()
 
   @ApiProperty({ example: true, description: 'Статус категории' })
   @Column({ type: DataType.BOOLEAN, defaultValue: true })
