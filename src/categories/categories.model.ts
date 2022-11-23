@@ -49,7 +49,7 @@ export class Category extends Model<Category> {
     description: 'Дата создания, проставляется автоматически',
   })
   @Column({
-    type: DataType.DATE
+    type: DataType.DATE,
   })
   createdDate: Date = new Date()
 

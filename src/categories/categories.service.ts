@@ -5,7 +5,7 @@ import { Category } from './categories.model'
 import { UpdateCategoryDto } from './dto/update-category.dto'
 import { isUUID } from 'class-validator'
 import { FilterCategory } from './dto/filter-category.dto'
-import { FindOptions, Op } from 'sequelize'
+import { FindOptions, Op, where, col } from 'sequelize'
 
 @Injectable()
 export class CategoriesService {
@@ -20,7 +20,7 @@ export class CategoriesService {
 
     return category
   }
-  
+
   async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
     const category = await this.categoryModel.findByPk(id)
     if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
@@ -54,39 +54,27 @@ export class CategoriesService {
   }
 
   async filter(dto: FilterCategory) {
-    // https://sequelize.org/api/v7/interfaces/whereoperators
-    // https://www.tabnine.com/code/javascript/functions/sequelize/Op
-    // https://www.programcreek.com/typescript/?api=sequelize.Op
-    // https://my-js.org/docs/guide/sequelize/
-
-    // https://stackoverflow.com/questions/45415791/unaccent-in-sequelize
     const { active, page, pageSize, name, description, search, sort } = dto
-
     const sortAtt: Array<string> = Object.keys(Category.getAttributes())
     const findOptions: FindOptions<Category> = {
       order: [],
-      where: { [Op.and]: [{}],  },
-      limit: pageSize
+      where: { [Op.and]: [{}] },
+      limit: pageSize,
     }
     if (page) findOptions.offset = page * pageSize - pageSize
     if (active !== undefined) findOptions.where[Op.and][0].active = active
-    if (name && !search) findOptions.where[Op.and][0].name = { [Op.iLike]: `%${name}%` }
+    if (name && !search) findOptions.where[Op.and][0].name = where(col('name'), '~*', `${name}`)
     if (description && !search) {
-      findOptions.where[Op.and][0].description = { [Op.iLike]: `%${description}%` }
+      findOptions.where[Op.and][0].description = where(col('description'), '~*', `${description}`)
     }
     if (search) {
-      findOptions.where[Op.or] = [
-        { name: { [Op.iLike]: `%${search}%`} },
-        { description: { [Op.iLike]: `%${search}%`} },
-      ]
+      findOptions.where[Op.or] = [where(col('name'), '~*', `${search}`), where(col('description'), '~*', `${search}`)]
     }
     if (sort) {
       if (sort.startsWith('-') && sortAtt.includes(sort.slice(1))) findOptions.order[0] = [sort.slice(1), 'DESC']
       if (!sort.startsWith('-') && sortAtt.includes(sort)) findOptions.order[0] = [sort, 'ASC']
     }
     const categories = await this.categoryModel.findAll(findOptions)
-    // console.log(Category.getAttributes())
-    console.log(findOptions.order[0])
 
     return categories
   }

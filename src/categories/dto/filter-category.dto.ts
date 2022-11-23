@@ -4,10 +4,12 @@ import { IsBoolean, IsNumber, IsString } from 'class-validator'
 
 export class FilterCategory {
   @ApiProperty({ required: false })
+  @Transform(({ value }) => strReplace(value))
   @IsString()
   readonly name?: string
 
   @ApiProperty({ required: false })
+  @Transform(({ value }) => strReplace(value))
   @IsString()
   readonly description?: string
 
@@ -17,6 +19,7 @@ export class FilterCategory {
   readonly active?: boolean
 
   @ApiProperty({ required: false })
+  @Transform(({ value }) => strReplace(value))
   @IsString()
   readonly search?: string
 
@@ -53,4 +56,8 @@ const toNumber = (value: string, opts?: ToNumberOptions): number => {
   if (newValue < opts?.min) newValue = opts.min
   if (newValue > opts?.max) newValue = opts.max
   return newValue
+}
+
+const strReplace = (str: string): string => {
+  return str.replace(/[её]/g, '[е|ё]')
 }
