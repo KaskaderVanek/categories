@@ -14,7 +14,7 @@ export class CategoriesService {
   async create(dto: CreateCategoryDto): Promise<Category> {
     const [category, created] = await this.categoryModel.findOrCreate({
       where: { slug: dto.slug },
-      defaults: dto,
+      defaults: {...dto, createdDate: new Date()},
     })
     if (!created) throw new HttpException(`Категория '${dto.slug}' уже существует`, HttpStatus.BAD_REQUEST)
 
