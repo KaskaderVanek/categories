@@ -5,7 +5,7 @@ import { IsNotUndefined } from 'src/decorators/undefined.decorator'
 export class CreateCategoryDto {
   @ApiProperty()
   @IsNotUndefined('Slug')
-  @Matches('^[a-zA-Z0-9_]*$', '', {
+  @Matches('^[a-zA-Z0-9_-]*$', '', {
     message: 'Slug должен быть строкой и не содержать кириллицу',
   })
   @IsNotEmpty({ message: 'Slug не может быть пустым' })
