@@ -46,22 +46,16 @@ export class CategoriesController {
     return this.categoryService.update(id, dto)
   }
 
-  @ApiOperation({ summary: 'Получить все категории' })
-  @ApiResponse({ status: 200, type: [Category] })
-  @Get('all')
-  getAllCategories(): Promise<Category[]> {
-    return this.categoryService.getAll()
-  }
 
   @ApiOperation({ summary: 'Получить массив категорий по фильтру' })
   @ApiResponse({ status: 200 })
-  @Get('filter')
+  @Get('')
   filterCategory(
     @Query(
       new ValidationPipe({
         transform: true,
-        whitelist: false,
-        forbidNonWhitelisted: false,
+        whitelist: true,
+        forbidNonWhitelisted: true,
         skipUndefinedProperties: true,
       }),
     )
@@ -70,21 +64,29 @@ export class CategoriesController {
     return this.categoryService.filter(dto)
   }
 
+  @ApiOperation({ summary: 'Получить все категории' })
+  @ApiResponse({ status: 200, type: [Category] })
+  @Get('all')
+  getAllCategories(): Promise<Category[]> {
+    return this.categoryService.getAll()
+  }
+
   @ApiOperation({
     summary: 'Получить категорию по Id или Slug',
-    description: 'В поле {value} нужно передать id или slug',
+    description: 'В поле {identity} нужно передать id или slug',
   })
-  @ApiParam({ name: 'value', example: 'a954927f-2ac6-4b9d-8486-03c0e8616ff3' })
+  @ApiParam({ name: 'identity', example: 'a954927f-2ac6-4b9d-8486-03c0e8616ff3' })
   @ApiResponse({ status: 200, type: Category })
-  @Get(':value')
-  getByIdOrSlug(@Param('value') value: string): Promise<Category> {
-    return this.categoryService.getOne(value)
+  @Get(':identity')
+  getByIdOrSlug(@Param('identity') identity: string): Promise<Category> {
+    return this.categoryService.getOne(identity)
   }
 
   @ApiOperation({ summary: 'Удалить категорию' })
   @ApiResponse({ status: 200 })
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  deleteCategory(@Param('id', UuidValidationPipe) id: string): Promise<HttpException> {
+  deleteCategory(@Param('id', UuidValidationPipe) id: string): Promise<void> {
     return this.categoryService.delete(id)
   }
 }
