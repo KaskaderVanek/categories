@@ -4,7 +4,7 @@ import { IsBoolean, IsNotEmpty, IsOptional, IsString, Matches } from 'class-vali
 export class UpdateCategoryDto {
   @ApiProperty({ required: false })
   @IsOptional()
-  @Matches('^[a-zA-Z0-9_]*$', '', {
+  @Matches('^[a-zA-Z0-9_-]*$', '', {
     message: 'Slug должен быть строкой и не содержать кириллицу',
   })
   @IsNotEmpty({ message: 'Slug не может быть пустым' })
