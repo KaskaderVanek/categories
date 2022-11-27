@@ -14,7 +14,7 @@ export class CategoriesService {
   async create(dto: CreateCategoryDto): Promise<Category> {
     const [category, created] = await this.categoryModel.findOrCreate({
       where: { slug: dto.slug },
-      defaults: {...dto, createdDate: new Date()},
+      defaults: { ...dto, createdDate: new Date() },
     })
     if (!created) throw new HttpException(`Категория '${dto.slug}' уже существует`, HttpStatus.BAD_REQUEST)
 
@@ -33,25 +33,22 @@ export class CategoriesService {
     return category.update(dto)
   }
 
-  async getOne(identity: string): Promise<Category> {
-    
-    if (isUUID(identity, '4')) {
-      const category = await this.categoryModel.findByPk(identity)
+  async getOne(id: string): Promise<Category> {
+    if (isUUID(id, '4')) {
+      const category = await this.categoryModel.findByPk(id)
       if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
       return category
     } else {
-
-      if (!matches(identity, new RegExp('^[a-zA-Z0-9_-]*$'))) {
+      if (!matches(id, new RegExp('^[a-zA-Z0-9_-]*$'))) {
         throw new HttpException('Slug должен быть строкой и не содержать кириллицу', HttpStatus.BAD_REQUEST)
       }
 
       const category = await this.categoryModel.findOne({
-        where: { slug: identity },
+        where: { slug: id },
       })
       if (!category) throw new HttpException('Категория не найдена', HttpStatus.NOT_FOUND)
       return category
     }
-
   }
 
   async delete(id: string): Promise<void> {
@@ -61,7 +58,7 @@ export class CategoriesService {
     }
   }
 
-  filter(dto: FilterCategory): Promise<{ rows: Category[], count: number }> {
+  filter(dto: FilterCategory): Promise<{ rows: Category[]; count: number }> {
     const { active, page, pageSize, name, description, search, sort } = dto
     const sortAtt: string[] = Object.keys(Category.getAttributes())
     const findOptions: FindOptions<Category> = {
@@ -71,7 +68,7 @@ export class CategoriesService {
     }
 
     if (page) findOptions.offset = page * pageSize - pageSize
-    if (active) findOptions.where[Op.and][0].active = active
+    if (typeof active === 'boolean') findOptions.where[Op.and][0].active = active
 
     if (search) {
       findOptions.where[Op.or] = [where(col('name'), '~*', `${search}`), where(col('description'), '~*', `${search}`)]
@@ -90,13 +87,10 @@ export class CategoriesService {
         if (!sort.startsWith('-')) findOptions.order[0] = [sort, 'ASC']
       } else {
         throw new HttpException('Сортировка возможна толька по полям модели Категории', HttpStatus.BAD_REQUEST)
-      } 
+      }
     }
+    console.log(active)
 
     return this.categoryModel.findAndCountAll(findOptions)
-  }
-
-  getAll(): Promise<Category[]> {
-    return this.categoryModel.findAll()
   }
 }

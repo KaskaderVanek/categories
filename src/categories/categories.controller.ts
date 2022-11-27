@@ -10,7 +10,6 @@ import {
   Query,
   Put,
   ValidationPipe,
-  HttpException,
 } from '@nestjs/common'
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger/dist'
 import { CreateCategoryDto } from './dto/create-category.dto'
@@ -46,7 +45,6 @@ export class CategoriesController {
     return this.categoryService.update(id, dto)
   }
 
-
   @ApiOperation({ summary: 'Получить массив категорий по фильтру' })
   @ApiResponse({ status: 200 })
   @Get('')
@@ -64,22 +62,15 @@ export class CategoriesController {
     return this.categoryService.filter(dto)
   }
 
-  @ApiOperation({ summary: 'Получить все категории' })
-  @ApiResponse({ status: 200, type: [Category] })
-  @Get('all')
-  getAllCategories(): Promise<Category[]> {
-    return this.categoryService.getAll()
-  }
-
   @ApiOperation({
     summary: 'Получить категорию по Id или Slug',
-    description: 'В поле {identity} нужно передать id или slug',
+    description: 'В поле {id} нужно передать id или slug',
   })
-  @ApiParam({ name: 'identity', example: 'a954927f-2ac6-4b9d-8486-03c0e8616ff3' })
+  @ApiParam({ name: 'id', example: 'a954927f-2ac6-4b9d-8486-03c0e8616ff3' })
   @ApiResponse({ status: 200, type: Category })
-  @Get(':identity')
-  getByIdOrSlug(@Param('identity') identity: string): Promise<Category> {
-    return this.categoryService.getOne(identity)
+  @Get(':id')
+  getByIdOrSlug(@Param('id') id: string): Promise<Category> {
+    return this.categoryService.getOne(id)
   }
 
   @ApiOperation({ summary: 'Удалить категорию' })
