@@ -5,7 +5,7 @@ import { AppModule } from './app.module'
 async function start() {
   const PORT = process.env.PORT || 5000
   const app = await NestFactory.create(AppModule)
-  app.setGlobalPrefix('api')
+  app.setGlobalPrefix('api/v1')
 
   const config = new DocumentBuilder()
     .setTitle('Categories Swagger')
@@ -17,9 +17,9 @@ async function start() {
     ignoreGlobalPrefix: true,
   })
 
-  SwaggerModule.setup('/api/docs', app, document)
+  SwaggerModule.setup('/api/v1/docs', app, document)
 
-  await app.listen(PORT, () => console.log(`Server started on PORT - ${PORT}`))
+  app.listen(PORT, () => console.log(`Server started on PORT - ${PORT}`))
 }
 
 start()
