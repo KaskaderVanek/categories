@@ -89,7 +89,6 @@ export class CategoriesService {
         throw new HttpException('Сортировка возможна толька по полям модели Категории', HttpStatus.BAD_REQUEST)
       }
     }
-    console.log(active)
 
     return this.categoryModel.findAndCountAll(findOptions)
   }
